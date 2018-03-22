@@ -16,10 +16,18 @@ def track(image):
     upper_red = np.array([10, 255, 255])
     mask = cv2.inRange(hsv, lower_red, upper_red)
     bmask = cv2.GaussianBlur(mask, (5,5),0)
+    kernelOpen=np.ones((5,5))
+    kernelClose=np.ones((20,20))
+    maskOpen=cv2.morphologyEx(bmask,cv2.MORPH_OPEN,kernelOpen)
+    mask=cv2.morphologyEx(maskOpen,cv2.MORPH_CLOSE,kernelClose)
+    (cmask,cnts,hierarchy) = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    cmask = mask
+    if len(cnts)>0:
+        cmask = max(cnts, key = cv2.contourArea)
     if drawing is None:
         drawing = np.zeros((image.shape), np.uint8)
     # Take the moments to get the centroid
-    moments = cv2.moments(bmask)
+    moments = cv2.moments(cmask)
     m00 = moments['m00']
     centroid_x, centroid_y = None, None
     if m00 != 0:
